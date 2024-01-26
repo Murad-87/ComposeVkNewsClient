@@ -19,9 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.muslim.simplevknewsclient.domain.FeedPost
 import com.muslim.simplevknewsclient.navigation.AppNavGraph
+import com.muslim.simplevknewsclient.navigation.Screen
 import com.muslim.simplevknewsclient.navigation.rememberNavigationState
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -39,7 +41,6 @@ fun MainScreen() {
             NavigationBar {
 
                 val navBackStackEntry by navigateState.navHostController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
 
                 val items = listOf(
                     NavigationItem.Home,
@@ -47,9 +48,18 @@ fun MainScreen() {
                     NavigationItem.Profile
                 )
                 items.forEach { item ->
+
+                    val selected = navBackStackEntry?.destination?.hierarchy?.any {
+                        it.route == item.screen.route
+                    } ?: false
+
                     NavigationBarItem(
-                        selected = currentRoute == item.screen.route,
-                        onClick = { navigateState.navigateTo(item.screen.route) },
+                        selected = selected,
+                        onClick = {
+                            if (!selected) {
+                                navigateState.navigateTo(item.screen.route)
+                            }
+                        },
                         icon = { Icon(item.icon, contentDescription = null) },
                         label = { Text(text = stringResource(id = item.titleResId)) },
                         colors = NavigationBarItemDefaults.colors(
@@ -67,19 +77,19 @@ fun MainScreen() {
 
         AppNavGraph(
             navHostController = navigateState.navHostController,
-            homeScreenContent = {
-                if (commentsToPost.value == null) {
-                    HomeScreen(onCommentClickListener = {
-                        commentsToPost.value = it
-                    })
-                } else {
-                    CommentsScreen(
-                        onBackPressed = {
-                            commentsToPost.value = null
-                        },
-                        feedPost = commentsToPost.value!!
-                    )
-                }
+            newsFeedScreenContent = {
+                HomeScreen(onCommentClickListener = {
+                    commentsToPost.value = it
+                    navigateState.navigateToComments()
+                })
+            },
+            commentsScreenContent = {
+                CommentsScreen(
+                    onBackPressed = {
+                        navigateState.navHostController.popBackStack()
+                    },
+                    feedPost = commentsToPost.value!!
+                )
             },
             favouriteScreenContent = { TextCount(name = "Favourite") },
             profileScreenContent = { TextCount(name = "Profile") }
