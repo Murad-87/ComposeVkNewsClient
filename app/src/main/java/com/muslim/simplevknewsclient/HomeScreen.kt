@@ -1,6 +1,5 @@
 package com.muslim.simplevknewsclient
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,33 +13,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muslim.simplevknewsclient.domain.FeedPost
 
 @Composable
 fun HomeScreen(
-    viewModel: MainViewModel
+    onCommentClickListener: (FeedPost) -> Unit,
 ) {
-    val screenState = viewModel.screenState.observeAsState(HomeScreenState.Initial)
+
+    val viewModel: NewsFeedViewModel = viewModel()
+
+    val screenState = viewModel.screenState.observeAsState(NewsFeedScreenState.Initial)
 
     when (val currentState = screenState.value) {
-        is HomeScreenState.Posts -> {
-            FeedPosts(posts = currentState.posts, viewModel = viewModel)
-        }
-
-        is HomeScreenState.Comments -> {
-            CommentsScreen(
-                feedPost = currentState.feedPost,
-                comments = currentState.comments,
-                onBackPressed = {
-                    viewModel.closeComments()
-                }
+        is NewsFeedScreenState.Posts -> {
+            FeedPosts(
+                posts = currentState.posts,
+                viewModel = viewModel,
+                onCommentClickListener = onCommentClickListener
             )
-            BackHandler {
-                viewModel.closeComments()
-            }
         }
 
-        HomeScreenState.Initial -> {}
+        NewsFeedScreenState.Initial -> {}
     }
 }
 
@@ -48,7 +42,8 @@ fun HomeScreen(
 @Composable
 private fun FeedPosts(
     posts: List<FeedPost>,
-    viewModel: MainViewModel
+    viewModel: NewsFeedViewModel,
+    onCommentClickListener: (FeedPost) -> Unit,
 ) {
 
     LazyColumn(
@@ -80,7 +75,7 @@ private fun FeedPosts(
                     PostCard(
                         feedPost = feedPost,
                         onCommentClickListener = {
-                            viewModel.showComments(feedPost)
+                            onCommentClickListener(feedPost)
                         },
                         onLikesClickListener = { statisticItem ->
                             viewModel.updateCount(feedPost, statisticItem)

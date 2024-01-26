@@ -23,12 +23,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.muslim.simplevknewsclient.domain.FeedPost
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muslim.simplevknewsclient.domain.PostComment
 import com.muslim.simplevknewsclient.ui.theme.SimpleVkNewsClientTheme
 
@@ -36,36 +37,44 @@ import com.muslim.simplevknewsclient.ui.theme.SimpleVkNewsClientTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsScreen(
-    feedPost: FeedPost,
-    comments: List<PostComment>,
     onBackPressed: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Comments for FeedPost Id: ${feedPost.id}") },
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
-        }
-    ) {
 
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = 16.dp,
-                start = 8.dp,
-                end = 8.dp,
-                bottom = 72.dp
-            )
+    val viewModel: CommentsViewModel = viewModel()
+    val screenState = viewModel.screenState.observeAsState(CommentsScreenState.Initial)
+    val currentState = screenState.value
+
+    if (currentState is CommentsScreenState.Comments) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = "Comments for FeedPost Id: ${currentState.feedPost.id}") },
+                    navigationIcon = {
+                        IconButton(onClick = { onBackPressed() }) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+            }
         ) {
-            items(items = comments, key = { it.id }) {comment ->
-                CommentItem(comment = comment)
+
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    top = 16.dp,
+                    start = 8.dp,
+                    end = 8.dp,
+                    bottom = 72.dp
+                )
+            ) {
+                items(
+                    items = currentState.comments,
+                    key = { it.id }
+                ) { comment ->
+                    CommentItem(comment = comment)
+                }
             }
         }
     }
@@ -75,9 +84,10 @@ fun CommentsScreen(
 private fun CommentItem(
     comment: PostComment
 ) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 4.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         Image(
             modifier = Modifier.size(24.dp),
