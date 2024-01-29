@@ -75,4 +75,7 @@ dependencies {
 
     //ViewModel compose
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    //Gson
+    implementation ("com.google.code.gson:gson:2.10.1")
 }
