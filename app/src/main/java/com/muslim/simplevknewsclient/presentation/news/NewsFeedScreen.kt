@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.news
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muslim.simplevknewsclient.domain.FeedPost
 
 @Composable
-fun HomeScreen(
+fun NewsFeedScreen(
     onCommentClickListener: (FeedPost) -> Unit,
 ) {
 

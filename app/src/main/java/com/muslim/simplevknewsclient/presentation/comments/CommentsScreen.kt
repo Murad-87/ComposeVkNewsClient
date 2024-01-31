@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.comments
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image

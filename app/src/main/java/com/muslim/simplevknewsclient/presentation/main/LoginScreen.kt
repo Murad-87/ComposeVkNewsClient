@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.muslim.simplevknewsclient.R
 import com.muslim.simplevknewsclient.ui.theme.DarkBlue
 
 @Composable
