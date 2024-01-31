@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.comments
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

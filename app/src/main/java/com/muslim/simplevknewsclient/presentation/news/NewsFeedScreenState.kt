@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.news
 
 import com.muslim.simplevknewsclient.domain.FeedPost
 

@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient.test
+package com.muslim.simplevknewsclient.samples
 
 import android.os.Handler
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient.test
+package com.muslim.simplevknewsclient.samples
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult

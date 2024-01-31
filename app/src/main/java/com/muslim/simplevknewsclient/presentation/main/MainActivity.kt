@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient
+package com.muslim.simplevknewsclient.presentation.main
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
