@@ -85,4 +85,10 @@ dependencies {
     //Vk SDK
     implementation ("com.vk:android-sdk-core:4.0.1")
     implementation ("com.vk:android-sdk-api:4.0.1")
+
+    //Retrofit
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    //Okhttp
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.11.0")
 }
