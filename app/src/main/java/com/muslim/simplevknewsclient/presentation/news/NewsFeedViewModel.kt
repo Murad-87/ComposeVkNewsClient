@@ -1,27 +1,40 @@
 package com.muslim.simplevknewsclient.presentation.news
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.muslim.simplevknewsclient.data.mapper.NewsFeedMapper
+import com.muslim.simplevknewsclient.data.network.ApiFactory
 import com.muslim.simplevknewsclient.domain.FeedPost
 import com.muslim.simplevknewsclient.domain.StatisticsItem
+import com.vk.api.sdk.VKPreferencesKeyValueStorage
+import com.vk.api.sdk.auth.VKAccessToken
+import kotlinx.coroutines.launch
 
-class NewsFeedViewModel : ViewModel() {
+class NewsFeedViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val sourceList = mutableListOf<FeedPost>().apply {
-        repeat(10) {
-            add(FeedPost(
-                id = it,
-                contentText = "Content $it"
-            )
-            )
-        }
-    }
-
-    private val initialState = NewsFeedScreenState.Posts(posts = sourceList)
+    private val initialState = NewsFeedScreenState.Initial
 
     private val _screenState = MutableLiveData<NewsFeedScreenState>(initialState)
     val screenState: LiveData<NewsFeedScreenState> = _screenState
+
+    private val mapper = NewsFeedMapper()
+
+    init {
+        loadRecommendation()
+    }
+
+    private fun loadRecommendation() {
+        viewModelScope.launch {
+            val storage = VKPreferencesKeyValueStorage(getApplication())
+            val token = VKAccessToken.restore(storage) ?: return@launch
+            val response = ApiFactory.apiService.loadRecommendations(token.accessToken)
+            val feedPosts = mapper.mapResponseToPosts(response)
+            _screenState.value = NewsFeedScreenState.Posts(posts = feedPosts)
+        }
+    }
 
     fun updateCount(feedPost: FeedPost, item: StatisticsItem) {
         val currentState = screenState.value
