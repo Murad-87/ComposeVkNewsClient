@@ -51,6 +51,5 @@ class NewsFeedViewModel(application: Application) : AndroidViewModel(application
             repository.deletePost(feedPost)
             _screenState.value = NewsFeedScreenState.Posts(posts = repository.feedPosts)
         }
-
     }
 }

@@ -1,7 +1,8 @@
 package com.muslim.simplevknewsclient.presentation.comments
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
+import android.app.Application
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,14 +27,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.muslim.simplevknewsclient.R
 import com.muslim.simplevknewsclient.domain.FeedPost
 import com.muslim.simplevknewsclient.domain.PostComment
-import com.muslim.simplevknewsclient.ui.theme.SimpleVkNewsClientTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +47,10 @@ fun CommentsScreen(
 ) {
 
     val viewModel: CommentsViewModel = viewModel(
-        factory = CommentsViewModelFactory(feedPost)
+        factory = CommentsViewModelFactory(
+            feedPost,
+            LocalContext.current.applicationContext as Application
+        )
     )
     val screenState = viewModel.screenState.observeAsState(CommentsScreenState.Initial)
     val currentState = screenState.value
@@ -52,7 +59,7 @@ fun CommentsScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = "Comments for FeedPost Id: ${currentState.feedPost.contentText}") },
+                    title = { Text(text = stringResource(R.string.comments_title)) },
                     navigationIcon = {
                         IconButton(onClick = { onBackPressed() }) {
                             Icon(
@@ -63,15 +70,17 @@ fun CommentsScreen(
                     }
                 )
             }
-        ) {
+        ) { paddingValues ->
 
             LazyColumn(
+                modifier = Modifier.padding(paddingValues),
                 contentPadding = PaddingValues(
                     top = 16.dp,
                     start = 8.dp,
                     end = 8.dp,
                     bottom = 72.dp
-                )
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(
                     items = currentState.comments,
@@ -93,9 +102,11 @@ private fun CommentItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
-        Image(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = comment.authorAvatarId),
+        AsyncImage(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape),
+            model = comment.authorAvatarUrl,
             contentDescription = null
         )
 
@@ -103,7 +114,7 @@ private fun CommentItem(
 
         Column {
             Text(
-                text = "${comment.authorName} CommentId: ${comment.id}",
+                text = comment.authorName,
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 12.sp
             )
@@ -124,14 +135,5 @@ private fun CommentItem(
                 fontSize = 12.sp
             )
         }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewComment() {
-
-    SimpleVkNewsClientTheme {
-        CommentItem(comment = PostComment(id = 0))
     }
 }
