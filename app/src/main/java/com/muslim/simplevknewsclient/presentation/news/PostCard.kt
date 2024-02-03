@@ -38,9 +38,7 @@ fun PostCard(
     modifier: Modifier = Modifier,
     feedPost: FeedPost,
     onLikesClickListener: (StatisticsItem) -> Unit,
-    onShareClickListener: (StatisticsItem) -> Unit,
     onCommentClickListener: (StatisticsItem) -> Unit,
-    onViewsClickListener: (StatisticsItem) -> Unit,
 ) {
     Card(modifier = modifier) {
         Column(
@@ -69,9 +67,7 @@ fun PostCard(
             Statistics(
                 statistics = feedPost.statistics,
                 onLikesClickListener = onLikesClickListener,
-                onShareClickListener = onShareClickListener,
                 onCommentClickListener = onCommentClickListener,
-                onViewsClickListener = onViewsClickListener,
                 isFavourite = feedPost.isLiked
             )
         }
@@ -124,9 +120,7 @@ private fun PostHeader(
 private fun Statistics(
     statistics: List<StatisticsItem>,
     onLikesClickListener: (StatisticsItem) -> Unit,
-    onShareClickListener: (StatisticsItem) -> Unit,
     onCommentClickListener: (StatisticsItem) -> Unit,
-    onViewsClickListener: (StatisticsItem) -> Unit,
     isFavourite: Boolean
 ) {
 
@@ -139,7 +133,6 @@ private fun Statistics(
             IconWithText(
                 iconResId = R.drawable.ic_views_count,
                 text = formatStatisticCount(viewsItem.count),
-                onItemClickListener = { onViewsClickListener(viewsItem) }
             )
         }
         Row(
@@ -151,7 +144,6 @@ private fun Statistics(
             IconWithText(
                 iconResId = R.drawable.ic_share,
                 text = formatStatisticCount(shareItem.count),
-                onItemClickListener = { onShareClickListener(shareItem) }
             )
             val commentItem = statistics.getItemById(StatisticsType.COMMENTS)
             IconWithText(
@@ -188,11 +180,18 @@ private fun List<StatisticsItem>.getItemById(type: StatisticsType): StatisticsIt
 private fun IconWithText(
     iconResId: Int,
     text: String,
-    onItemClickListener: () -> Unit,
+    onItemClickListener: (() -> Unit)? = null,
     tint: Color = MaterialTheme.colorScheme.onSecondary
 ) {
+
+    val modifier = if (onItemClickListener == null) {
+        Modifier
+    } else {
+        Modifier.clickable { onItemClickListener() }
+    }
+
     Row(
-        modifier = Modifier.clickable { onItemClickListener() },
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
