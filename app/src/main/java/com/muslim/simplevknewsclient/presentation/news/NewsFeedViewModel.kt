@@ -7,8 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.muslim.simplevknewsclient.data.repository.NewsFeedRepository
 import com.muslim.simplevknewsclient.domain.FeedPost
-import com.muslim.simplevknewsclient.domain.StatisticsItem
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class NewsFeedViewModel(application: Application) : AndroidViewModel(application) {
@@ -22,6 +20,7 @@ class NewsFeedViewModel(application: Application) : AndroidViewModel(application
 
 
     init {
+        _screenState.value = NewsFeedScreenState.Loading
         loadRecommendation()
     }
 
@@ -47,41 +46,11 @@ class NewsFeedViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun updateCount(feedPost: FeedPost, item: StatisticsItem) {
-        val currentState = screenState.value
-        if (currentState !is NewsFeedScreenState.Posts) return
-
-        val oldPosts = currentState.posts.toMutableList()
-        val oldStatistics = feedPost.statistics
-        val newStatistics = oldStatistics.toMutableList().apply {
-            replaceAll { oldItem ->
-                if (oldItem.type == item.type) {
-                    oldItem.copy(count = oldItem.count + 1)
-                } else {
-                    oldItem
-                }
-            }
-        }
-        val newFeedPost = feedPost.copy(statistics = newStatistics)
-        val newPosts = oldPosts.apply {
-            replaceAll {
-                if (it.id == newFeedPost.id) {
-                    newFeedPost
-                } else {
-                    it
-                }
-            }
-        }
-        _screenState.value = NewsFeedScreenState.Posts(posts = newPosts)
-    }
-
     fun remove(feedPost: FeedPost) {
+        viewModelScope.launch {
+            repository.deletePost(feedPost)
+            _screenState.value = NewsFeedScreenState.Posts(posts = repository.feedPosts)
+        }
 
-        val currentState = screenState.value
-        if (currentState !is NewsFeedScreenState.Posts) return
-
-        val oldPosts = currentState.posts.toMutableList()
-        oldPosts.remove(feedPost)
-        _screenState.value = NewsFeedScreenState.Posts(posts = oldPosts)
     }
 }
