@@ -3,7 +3,7 @@ package com.muslim.simplevknewsclient.presentation.comments
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.muslim.simplevknewsclient.domain.FeedPost
+import com.muslim.simplevknewsclient.domain.entity.FeedPost
 
 class CommentsViewModelFactory(
     private val feedPost: FeedPost,
