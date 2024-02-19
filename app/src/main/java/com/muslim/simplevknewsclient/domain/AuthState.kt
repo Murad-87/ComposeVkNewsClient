@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient.presentation.main
+package com.muslim.simplevknewsclient.domain
 
 sealed class AuthState {
 
