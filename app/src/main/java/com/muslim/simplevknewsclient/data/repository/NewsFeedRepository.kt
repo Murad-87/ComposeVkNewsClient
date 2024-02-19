@@ -8,6 +8,7 @@ import com.muslim.simplevknewsclient.domain.PostComment
 import com.muslim.simplevknewsclient.domain.StatisticsItem
 import com.muslim.simplevknewsclient.domain.StatisticsType
 import com.muslim.simplevknewsclient.extensions.mergeWith
+import com.muslim.simplevknewsclient.domain.AuthState
 import com.vk.api.sdk.VKPreferencesKeyValueStorage
 import com.vk.api.sdk.auth.VKAccessToken
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +26,8 @@ import kotlinx.coroutines.flow.stateIn
 class NewsFeedRepository(application: Application) {
 
     private val storage = VKPreferencesKeyValueStorage(application)
-    private val token = VKAccessToken.restore(storage)
+    private val token
+        get() = VKAccessToken.restore(storage)
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val nextDataNeededEvents = MutableSharedFlow<Unit>(replay = 1)
@@ -55,7 +57,7 @@ class NewsFeedRepository(application: Application) {
     }.retry(2) {
         delay(RETRY_TIMEOUT_MILLIS)
         true
-    }.catch {  }
+    }.catch { }
 
     private val apiService = ApiFactory.apiService
     private val mapper = NewsFeedMapper()
@@ -65,6 +67,22 @@ class NewsFeedRepository(application: Application) {
         get() = _feedPosts.toList()
 
     private var nextFrom: String? = null
+
+    private val checkAuthStateEvents = MutableSharedFlow<Unit>(replay = 1)
+
+    val authStateFlow = flow {
+        checkAuthStateEvents.emit(Unit)
+        checkAuthStateEvents.collect {
+            val currentToken = token
+            val loggedIn = currentToken != null && currentToken.isValid
+            val authState = if (loggedIn) AuthState.Authorized else AuthState.NotAuthorized
+            emit(authState)
+        }
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.Lazily,
+        initialValue = AuthState.Initial
+    )
 
     val recommendations: StateFlow<List<FeedPost>> = loadedListFlow
         .mergeWith(refreshedListFlow)
@@ -76,6 +94,10 @@ class NewsFeedRepository(application: Application) {
 
     suspend fun loadNextData() {
         nextDataNeededEvents.emit(Unit)
+    }
+
+    suspend fun checkAuthState() {
+        checkAuthStateEvents.emit(Unit)
     }
 
     suspend fun changeLikeStatus(feedPost: FeedPost) {
