@@ -2,10 +2,10 @@ package com.muslim.simplevknewsclient.data.mapper
 
 import com.muslim.simplevknewsclient.data.model.CommentsResponseDto
 import com.muslim.simplevknewsclient.data.model.NewsFeedResponseDto
-import com.muslim.simplevknewsclient.domain.FeedPost
-import com.muslim.simplevknewsclient.domain.PostComment
-import com.muslim.simplevknewsclient.domain.StatisticsItem
-import com.muslim.simplevknewsclient.domain.StatisticsType
+import com.muslim.simplevknewsclient.domain.entity.FeedPost
+import com.muslim.simplevknewsclient.domain.entity.PostComment
+import com.muslim.simplevknewsclient.domain.entity.StatisticsItem
+import com.muslim.simplevknewsclient.domain.entity.StatisticsType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

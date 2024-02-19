@@ -1,4 +1,4 @@
-package com.muslim.simplevknewsclient.domain
+package com.muslim.simplevknewsclient.domain.entity
 
 data class StatisticsItem(
     val type: StatisticsType,
