@@ -1,8 +1,8 @@
 package com.muslim.simplevknewsclient.data.repository
 
-import android.app.Application
 import com.muslim.simplevknewsclient.data.mapper.NewsFeedMapper
 import com.muslim.simplevknewsclient.data.network.ApiFactory
+import com.muslim.simplevknewsclient.data.network.ApiService
 import com.muslim.simplevknewsclient.domain.entity.AuthState
 import com.muslim.simplevknewsclient.domain.entity.FeedPost
 import com.muslim.simplevknewsclient.domain.entity.PostComment
@@ -22,16 +22,48 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
-class NewsFeedRepositoryImpl(application: Application) : NewsFeedRepository {
+class NewsFeedRepositoryImpl @Inject constructor(
+    private val storage: VKPreferencesKeyValueStorage,
+    private val apiService: ApiService,
+    private val mapper: NewsFeedMapper
+) : NewsFeedRepository {
 
-    private val storage = VKPreferencesKeyValueStorage(application)
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+
     private val token
         get() = VKAccessToken.restore(storage)
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val checkAuthStateEvents = MutableSharedFlow<Unit>(replay = 1)
+
+    private val authStateFlow = flow {
+        checkAuthStateEvents.emit(Unit)
+        checkAuthStateEvents.collect {
+            val currentToken = token
+            val loggedIn = currentToken != null && currentToken.isValid
+            val authState = if (loggedIn) AuthState.Authorized else AuthState.NotAuthorized
+            emit(authState)
+        }
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.Lazily,
+        initialValue = AuthState.Initial
+    )
+
+    private fun getAccessToken(): String {
+        return token?.accessToken ?: throw IllegalStateException("Token is null")
+    }
+
+    private val _feedPosts = mutableListOf<FeedPost>()
+    private val feedPosts: List<FeedPost>
+        get() = _feedPosts.toList()
+
+    private var nextFrom: String? = null
+
     private val nextDataNeededEvents = MutableSharedFlow<Unit>(replay = 1)
     private val refreshedListFlow = MutableSharedFlow<List<FeedPost>>()
+
     private val loadedListFlow = flow {
         nextDataNeededEvents.emit(Unit)
         nextDataNeededEvents.collect {
@@ -58,31 +90,6 @@ class NewsFeedRepositoryImpl(application: Application) : NewsFeedRepository {
         delay(RETRY_TIMEOUT_MILLIS)
         true
     }.catch { }
-
-    private val apiService = ApiFactory.apiService
-    private val mapper = NewsFeedMapper()
-
-    private val _feedPosts = mutableListOf<FeedPost>()
-    private val feedPosts: List<FeedPost>
-        get() = _feedPosts.toList()
-
-    private var nextFrom: String? = null
-
-    private val checkAuthStateEvents = MutableSharedFlow<Unit>(replay = 1)
-
-    private val authStateFlow = flow {
-        checkAuthStateEvents.emit(Unit)
-        checkAuthStateEvents.collect {
-            val currentToken = token
-            val loggedIn = currentToken != null && currentToken.isValid
-            val authState = if (loggedIn) AuthState.Authorized else AuthState.NotAuthorized
-            emit(authState)
-        }
-    }.stateIn(
-        scope = coroutineScope,
-        started = SharingStarted.Lazily,
-        initialValue = AuthState.Initial
-    )
 
     private val recommendations: StateFlow<List<FeedPost>> = loadedListFlow
         .mergeWith(refreshedListFlow)
@@ -127,10 +134,6 @@ class NewsFeedRepositoryImpl(application: Application) : NewsFeedRepository {
         val postIndex = _feedPosts.indexOf(feedPost)
         _feedPosts[postIndex] = newPost
         refreshedListFlow.emit(feedPosts)
-    }
-
-    private fun getAccessToken(): String {
-        return token?.accessToken ?: throw IllegalStateException("Token is null")
     }
 
     override suspend fun deletePost(feedPost: FeedPost) {
