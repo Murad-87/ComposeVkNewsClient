@@ -21,6 +21,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.muslim.simplevknewsclient.navigation.AppNavGraph
 import com.muslim.simplevknewsclient.navigation.rememberNavigationState
+import com.muslim.simplevknewsclient.presentation.ViewModelFactory
 import com.muslim.simplevknewsclient.presentation.comments.CommentsScreen
 import com.muslim.simplevknewsclient.presentation.news.NewsFeedScreen
 
@@ -72,16 +73,18 @@ fun MainScreen() {
         AppNavGraph(
             navHostController = navigateState.navHostController,
             newsFeedScreenContent = {
-                NewsFeedScreen(onCommentClickListener = {
-                    navigateState.navigateToComments(it)
-                })
+                NewsFeedScreen(
+                    onCommentClickListener = {
+                        navigateState.navigateToComments(it)
+                    },
+                )
             },
-            commentsScreenContent = {feedPost ->
+            commentsScreenContent = { feedPost ->
                 CommentsScreen(
                     onBackPressed = {
                         navigateState.navHostController.popBackStack()
                     },
-                    feedPost = feedPost
+                    feedPost = feedPost,
                 )
             },
             favouriteScreenContent = { TextCount(name = "Favourite") },

@@ -1,19 +1,16 @@
 package com.muslim.simplevknewsclient.presentation.main
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.muslim.simplevknewsclient.data.repository.NewsFeedRepositoryImpl
 import com.muslim.simplevknewsclient.domain.usecases.CheckAuthStateUseCase
 import com.muslim.simplevknewsclient.domain.usecases.GetAuthStateFlowUseCase
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = NewsFeedRepositoryImpl(application)
-
-    private val getAuthStateFlowUseCase = GetAuthStateFlowUseCase(repository)
-    private val checkAuthStateFlowUseCase = CheckAuthStateUseCase(repository)
+class MainViewModel @Inject constructor(
+    private val getAuthStateFlowUseCase: GetAuthStateFlowUseCase,
+    private val checkAuthStateFlowUseCase: CheckAuthStateUseCase,
+) : ViewModel() {
 
     val authState = getAuthStateFlowUseCase()
 
